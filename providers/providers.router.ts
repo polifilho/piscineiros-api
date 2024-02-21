@@ -1,6 +1,8 @@
 import * as restify from 'restify'
 import { ModuleRouter } from '../common/model-router';
 import { Provider, IProvider } from './providers.model';
+import { authenticate } from '../security/auth-handler';
+import { auth } from '../security/auth';
 
 class ProvidersRouter extends ModuleRouter<IProvider> {
     
@@ -12,11 +14,13 @@ class ProvidersRouter extends ModuleRouter<IProvider> {
     }
 
     applyRoutes(application: restify.Server) {
-        application.get('/providers', this.findAll)
-        application.get('/providers/:id', [this.validateId, this.findById])
-        application.post('/providers', this.save)
-        application.put('/providers/:id', [this.validateId, this.update])
-        application.del('/providers/:id', [this.validateId, this.delete])
+        application.get('/providers', [auth('admin'), this.findAll])
+        application.get('/providers/:id', [auth('admin'), this.validateId, this.findById])
+        application.post('/providers', [auth('admin'), this.save])
+        application.put('/providers/:id', [auth('admin'), this.validateId, this.update])
+        application.del('/providers/:id', [auth('admin'), this.validateId, this.delete])
+
+        application.post('/providers/authenticate', authenticate)
     }
 }
 

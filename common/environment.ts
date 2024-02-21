@@ -6,6 +6,7 @@ export const environment = {
         url: process.env.URL || 'mongodb://localhost/piscineiros'
     },
     security: {
-        saltRounds: process.env.SALT_ROUNDS || 10
-    }
+        saltRounds: process.env.SALT_ROUNDS || 10,
+        apiSecret: process.env.API_SECRET || 'piscineiros-api-secret'
+    },
 }

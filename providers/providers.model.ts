@@ -9,6 +9,13 @@ export interface IProvider extends mongoose.Document {
     password: string;
     gender: string;
     cpf: string;
+    profiles: string[];
+    matches(password: string): boolean;
+    hasAny(...profiles: string[]): boolean;
+}
+
+export interface IProviderModel extends mongoose.Model<IProvider> {
+    findByEmail(email: string, projection?: string): Promise<IProvider>
 }
 
 const providersSchema = new mongoose.Schema({
@@ -41,6 +48,10 @@ const providersSchema = new mongoose.Schema({
             validator: validateCPF,
             message: 'invalid CPF ({VALUE})'
         }
+    },
+    profiles: {
+        type: [String],
+        required: false
     }
 }, 
 {
@@ -48,6 +59,18 @@ const providersSchema = new mongoose.Schema({
 })
 
 // Auxiliary Functions for Middleware
+providersSchema.statics.findByEmail = function(email: string, projection: string) {
+    return this.findOne({email}, projection)
+}
+
+providersSchema.methods.matches = function(password: string): boolean {
+    return bcrypt.compareSync(password, this.password)
+}
+
+providersSchema.methods.hasAny = function(...profiles: string[]): boolean {
+    return profiles.some(profile => this.profiles.indexOf(profile) !== -1)
+}
+
 const hashPassword = (obj, next) => {
     bcrypt.hash(obj.password, environment.security.saltRounds)
         .then(hash => {
@@ -80,4 +103,4 @@ providersSchema.pre('save', saveMiddleware);
 providersSchema.pre('findOneAndUpdate', updateMiddleware);
 providersSchema.pre('updateOne', updateMiddleware);
 
-export const Provider = mongoose.model<IProvider>('Provider', providersSchema)
+export const Provider = mongoose.model<IProvider, IProviderModel>('Provider', providersSchema)

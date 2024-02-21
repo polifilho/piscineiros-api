@@ -1,8 +1,10 @@
+import * as fs from 'fs';
 import * as restify from 'restify'
 import * as mongoose from 'mongoose';
 import { environment } from '../common/environment';
 import { Router } from '../common/router';
 import { handleError } from './handler-error';
+import { tokenParser } from '../security/token-parse';
 
 export class Server {
 	// attributes
@@ -19,12 +21,15 @@ export class Server {
 			try {
 				this.application = restify.createServer({
 					name: 'brum-api',
-					version: '1.0.0'
+					version: '1.0.0',
+					certificate: fs.readFileSync('./security/keys/cert.pem'),
+					key: fs.readFileSync('./security/keys/key.pem'),
 				})
 
 				// plugins
 				this.application.use(restify.plugins.queryParser())
 				this.application.use(restify.plugins.bodyParser())
+				this.application.use(tokenParser)
 
 				for (let router of routers) {
 					router.applyRoutes(this.application)
