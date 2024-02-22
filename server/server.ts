@@ -5,6 +5,7 @@ import { environment } from '../common/environment';
 import { Router } from '../common/router';
 import { handleError } from './handler-error';
 import { tokenParser } from '../security/token-parse';
+import { logger } from '../common/logger';
 
 export class Server {
 	// attributes
@@ -19,12 +20,24 @@ export class Server {
 	initRoutes(routers: Router[]): Promise<any> {
 		return new Promise((resolve, reject) => {
 			try {
-				this.application = restify.createServer({
+				const options: restify.ServerOptions = {
 					name: 'brum-api',
 					version: '1.0.0',
-					certificate: fs.readFileSync('./security/keys/cert.pem'),
-					key: fs.readFileSync('./security/keys/key.pem'),
-				})
+					log: logger
+				}
+
+				if (environment.security.enableHTTPS) {
+					options.certificate = fs.readFileSync('./security/keys/cert.pem');
+					options.key = fs.readFileSync('./security/keys/key.pem');
+				}
+
+				// creating server
+				this.application = restify.createServer(options)
+
+				// it will prepare the logger for each request
+				this.application.pre(restify.plugins.requestLogger({
+					log: logger
+				}))
 
 				// plugins
 				this.application.use(restify.plugins.queryParser())

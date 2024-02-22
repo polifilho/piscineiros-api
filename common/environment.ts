@@ -7,6 +7,11 @@ export const environment = {
     },
     security: {
         saltRounds: process.env.SALT_ROUNDS || 10,
-        apiSecret: process.env.API_SECRET || 'piscineiros-api-secret'
+        apiSecret: process.env.API_SECRET || 'piscineiros-api-secret',
+        enableHTTPS: process.env.ENABLE_HTTPS || false,
     },
+    log: {
+        level: process.env.LOG_LEVEL || 'debug',
+        name: 'piscineiros-api-logger'
+    }
 }
